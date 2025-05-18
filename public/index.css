@@ -1,0 +1,208 @@
+/* Custom styles for the QR Code Generator */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f8f9fa;
+    padding: 20px;
+    padding-top: 80px;
+}
+
+h1 {
+    color: #343a40;
+}
+
+form {
+    margin-top: 20px;
+}
+
+form label {
+    font-weight: bold;
+}
+
+form input {
+    margin-bottom: 10px;
+}
+
+form button {
+    margin-top: 10px;
+}
+
+.qr-code {
+    margin-top: 20px;
+}
+
+/* Menu Button Grid Styling */
+.menu {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 10px;
+    justify-content: center;
+    align-items: center;
+    margin-top: 20px;
+}
+
+.menu-button {
+    display: block;
+    padding: 10px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #ffffff;
+    background-color: #007bff;
+    border: none;
+    border-radius: 4px;
+    text-align: center;
+    text-decoration: none;
+    transition: background-color 0.3s;
+}
+
+.menu-button:hover {
+    background-color: #0056b3;
+}
+
+.menu-button:active {
+    background-color: #003f7f;
+}
+
+/* QR Code List Styling */
+.qr-list {
+    margin-top: 20px;
+    border-collapse: collapse;
+    width: 100%;
+}
+
+.qr-list th, .qr-list td {
+    border: 1px solid #dee2e6;
+    padding: 10px;
+    text-align: left;
+}
+
+.qr-list th {
+    background-color: #343a40;
+    color: #ffffff;
+}
+
+.qr-list tr:hover {
+    background-color: #f1f3f5;
+}
+
+/* Add styles for the favicon, login page logo, and menu title logo */
+
+/* Logo on the login page */
+.login-logo {
+    display: block;
+    margin: 0 auto;
+    width: 150px;
+    height: auto;
+}
+
+/* Logo near the menu title */
+.menu-title-logo {
+    width: 50px;
+    height: 50px;
+    margin: 20px;
+    vertical-align: middle;
+}
+
+/* Navbar Styling */
+.navbar {
+    background-color: #fff !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+}
+
+/* Reset padding for container-fluid to remove left margin */
+.container-fluid {
+    padding-left: 0;
+    padding-right: 0;
+}
+
+/* Card Styling for Login */
+.card {
+    width: 100%;
+    max-width: 400px;
+}
+
+/* QR Code Image Styling */
+.qr-code-img {
+    width: 150px;
+    height: auto;
+    margin-top: 10px;
+}
+
+/* Connection Message Styling */
+.connection-success {
+    color: green;
+}
+
+.connection-failed {
+    color: red;
+}
+
+/* Margin for pushing elements */
+.push-down {
+    margin-top: 80px;
+}
+
+/* Add a class to apply 50px margin to the right */
+.margin-right-50 {
+    margin-right: 50px;
+}
+
+/* Grid container styling */
+.grid-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    margin-top: 50px;
+    gap: 20px;
+    align-items: start;
+}
+
+/* Grid item styling */
+.grid-item {
+    border: 1px solid #dee2e6;
+    padding: 20px;
+    text-align: center;
+    background-color: #ffffff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+}
+
+/* Utility classes */
+.min-vh-80 {
+    min-height: 80vh;
+}
+
+.max-width-400 {
+    max-width: 400px;
+}
+
+.btn-search-mt0 {
+    margin-top: 0 !important;
+}
+
+.table-responsive {
+    max-width: 100%;
+    overflow-x: auto;
+    white-space: nowrap; /* Ensures horizontal scroll if table is too wide */
+    -webkit-overflow-scrolling: touch; /* Smooth scrolling on mobile */
+}
+
+.table {
+    max-width: none; /* Remove max-width so table can expand horizontally */
+    min-width: 600px; /* Optional: set a min-width for better scroll effect */
+    table-layout: auto;
+    word-break: break-all;
+}
+
+.table td, .table th {
+    white-space: nowrap; /* Prevent cell content from wrapping */
+}
+
+.card-body {
+    max-width: 100%;
+    overflow-x: auto;
+}
+

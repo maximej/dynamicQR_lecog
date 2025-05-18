@@ -1,0 +1,11 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"type": "shell",
+			"label": "Test Slim Framework Routes",
+			"command": "php -S localhost:8000 -t c:\\Users\\maxim\\Dev\\qr.lecog.fr",
+			"isBackground": true
+		}
+	]
+}

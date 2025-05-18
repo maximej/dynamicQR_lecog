@@ -33,7 +33,7 @@ A production-ready QR code management system for LWS shared hosting, using class
 2. Visit `setup_database_admin.php` to initialize the database and create the root user.
 3. Log in at `/login.php` with the root credentials : root / admin.
 4. Use the navigation to create, view, and manage QR codes and users. Change root password, change/delete user also.
-5. Delete file setup_database.php
+5. Delete file setup_database_admin.php
 
 ## Requirements
 - PHP 8.0+

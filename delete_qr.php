@@ -22,12 +22,6 @@ $id = $_POST['id'];
 // Get QR code image path
 $stmt = $pdo->prepare('SELECT qr_code_path FROM qrcodes WHERE id = :id');
 $stmt->execute(['id' => $id]);
-
-try {
-    (new QrDataStore())->deleteQrData($id);
-} catch (Throwable $e) {
-    error_log('QR private data cleanup failed: ' . $e->getMessage());
-}
 $qr = $stmt->fetch(PDO::FETCH_ASSOC);
 
 if ($qr && !empty($qr['qr_code_path']) && file_exists($qr['qr_code_path'])) {
@@ -37,6 +31,12 @@ if ($qr && !empty($qr['qr_code_path']) && file_exists($qr['qr_code_path'])) {
 // Delete from database
 $stmt = $pdo->prepare('DELETE FROM qrcodes WHERE id = :id');
 $stmt->execute(['id' => $id]);
+
+try {
+    (new QrDataStore())->deleteQrData($id);
+} catch (Throwable $e) {
+    error_log('QR private data cleanup failed: ' . $e->getMessage());
+}
 
 $_SESSION['success'] = 'QR code deleted.';
 header('Location: /list.php');

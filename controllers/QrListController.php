@@ -44,6 +44,12 @@ class QrListController
 
         // Determine if there are more results for pagination
         $hasMore = ($offset + count($qrCodes)) < $totalRows;
+        try {
+            $stats = (new QrDataStore())->getStatsForIds(array_column($qrCodes, 'id'));
+        } catch (\Throwable $e) {
+            $stats = [];
+            error_log('QR statistics read failed: ' . $e->getMessage());
+        }
 
         ob_start();
         $menu = new \App\Controllers\MainMenuController();
@@ -114,6 +120,8 @@ class QrListController
                             <th>QR Code</th>
                             <th>Original URL</th>
                             <th>Redirect URL</th>
+                            <th>Views / Scans</th>
+                            <th>Last Viewed (UTC)</th>
                             <th>Created At</th>
                         </tr>
                     </thead>
@@ -174,6 +182,10 @@ class QrListController
             $redirectUrlLink = $redirectUrl ? '<a href="' . $redirectUrl . '" target="_blank" rel="noopener">' . $redirectUrl . '</a>' : '';
             $html .= '<td>' . $originalUrlLink . '<div class="mt-2"></div></td>';
             $html .= '<td id="redirect-url-cell-' . htmlspecialchars($qrCode['id']) . '">' . $redirectUrlLink . '<div class="mt-2">' . $editBtn . '</div></td>';
+            $qrStats = $stats[$qrCode['id']] ?? ['views' => 0, 'last_viewed_at' => null];
+            $lastViewed = $qrStats['last_viewed_at'] ? str_replace(['T', 'Z'], [' ', ' UTC'], $qrStats['last_viewed_at']) : 'Never';
+            $html .= '<td>' . (int)$qrStats['views'] . '</td>';
+            $html .= '<td>' . htmlspecialchars($lastViewed) . '</td>';
             $html .= '<td>' . htmlspecialchars($qrCode['created_at'] ?? '') . '<div class="mt-2">' . $deleteBtn . '</div></td>';
             $html .= '</tr>';
         }

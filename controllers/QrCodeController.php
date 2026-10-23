@@ -35,6 +35,14 @@ class QrCodeController
                         <input type="checkbox" id="dynamic" name="dynamic" class="form-check-input">
                         <label for="dynamic" class="form-check-label">Dynamic QR Code (Redirected)</label>
                     </div>
+                    <div class="mb-3" id="customSlugGroup" style="display:none;">
+                        <label for="custom_slug" class="form-label">Custom short URL (optional):</label>
+                        <div class="input-group">
+                            <span class="input-group-text">qr.lecog.fr/</span>
+                            <input type="text" id="custom_slug" name="custom_slug" class="form-control" minlength="3" maxlength="64" pattern="[a-z0-9][a-z0-9-]{2,63}" placeholder="pantin">
+                        </div>
+                        <div class="form-text">3–64 lowercase letters, numbers, or hyphens. Available for dynamic QR codes.</div>
+                    </div>
                 </div>
                 </div>
             </div>
@@ -111,6 +119,18 @@ class QrCodeController
                 }
             });
         });
+        const dynamicCheckbox = document.getElementById("dynamic");
+        const customSlugGroup = document.getElementById("customSlugGroup");
+        const customSlugInput = document.getElementById("custom_slug");
+        function updateCustomSlugVisibility() {
+            customSlugGroup.style.display = dynamicCheckbox.checked ? "block" : "none";
+            if (!dynamicCheckbox.checked) customSlugInput.value = "";
+        }
+        dynamicCheckbox.addEventListener("change", updateCustomSlugVisibility);
+        customSlugInput.addEventListener("input", function() {
+            this.value = this.value.toLowerCase().replace(/[^a-z0-9-]/g, "");
+        });
+        updateCustomSlugVisibility();
         </script>';
 
         if ($response && method_exists($response, 'getBody')) {
@@ -137,9 +157,17 @@ class QrCodeController
             $foregroundColorHex = $data['foreground_color'] ?? '#000000';
             $backgroundColorHex = $data['background_color'] ?? '#FFFFFF';
             $isDynamic = isset($data['dynamic']) && $data['dynamic'] === 'on';
+            $customSlug = QrDataStore::normalizeSlug((string)($data['custom_slug'] ?? ''));
+            $slugRegistered = false;
 
             if (empty($url)) {
                 throw new \Exception('No URL or text provided for QR code generation.');
+            }
+            if ($customSlug !== '' && !$isDynamic) {
+                throw new \InvalidArgumentException('A custom URL can only be used with a dynamic QR code.');
+            }
+            if ($customSlug !== '') {
+                QrDataStore::validateSlug($customSlug);
             }
 
             $foregroundColor = new Color(
@@ -153,8 +181,16 @@ class QrCodeController
                 hexdec(substr($backgroundColorHex, 5, 2))
             );
 
-            $uniqueId = uniqid();
-            $qrCodeContent = $isDynamic ? "$baseUrl/redirect.php?id={$uniqueId}" : $url;
+            $uniqueId = bin2hex(random_bytes(8));
+            $qrCodeContent = $isDynamic
+                ? ($customSlug !== '' ? rtrim($baseUrl, '/') . '/' . $customSlug : rtrim($baseUrl, '/') . "/redirect.php?id={$uniqueId}")
+                : $url;
+
+            $dataStore = new QrDataStore();
+            if ($customSlug !== '') {
+                $dataStore->registerSlug($customSlug, $uniqueId);
+                $slugRegistered = true;
+            }
 
             $qrCode = new QrCode($qrCodeContent);
             $qrCode->setSize((int)$size);
@@ -231,6 +267,13 @@ class QrCodeController
             $_SESSION['qr_code_path'] = $qrCodePath;
             $_SESSION['success'] = 'QR Code generated successfully!';
         } catch (\Exception $e) {
+            if (!empty($slugRegistered) && !empty($customSlug) && !empty($uniqueId)) {
+                try {
+                    (new QrDataStore())->releaseSlug($customSlug, $uniqueId);
+                } catch (\Throwable $cleanupError) {
+                    error_log('Custom QR URL cleanup failed: ' . $cleanupError->getMessage());
+                }
+            }
             $_SESSION['error'] = 'Failed to generate QR Code: ' . $e->getMessage();
         }
 

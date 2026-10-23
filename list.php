@@ -2,6 +2,7 @@
 session_start();
 require_once __DIR__ . '/config/database.php';
 require_once __DIR__ . '/controllers/QrListController.php';
+require_once __DIR__ . '/controllers/QrDataStore.php';
 require_once __DIR__ . '/controllers/MainMenuController.php';
 
 use App\Controllers\QrListController;

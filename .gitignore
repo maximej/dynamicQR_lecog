@@ -1,3 +1,7 @@
 # Ignore sensitive config files
 config/app.php
+config/database.php
 setup_database.php
+debug.log
+qrcodes/*.png
+private/

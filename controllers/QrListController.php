@@ -130,14 +130,6 @@ class QrListController
                     </thead>
                     <tbody>';
 
-        // Get current user username
-        $currentUser = null;
-        if (isset($_SESSION['user_id'])) {
-            $stmtUser = $this->pdo->prepare('SELECT username FROM users WHERE id = :id LIMIT 1');
-            $stmtUser->execute(['id' => $_SESSION['user_id']]);
-            $currentUser = $stmtUser->fetch();
-        }
-
         foreach ($qrCodes as $qrCode) {
             $editBtn = '';
             if (!empty($qrCode['redirect_url'])) {
@@ -168,14 +160,10 @@ class QrListController
                     . '</div>'
                     . '</div>';
             }
-            // Only show delete button/modal if user is root
-            $deleteBtn = '';
-            if ($currentUser && $currentUser['username'] === 'root') {
-                $deleteBtn = '<form method="POST" action="/delete_qr.php" style="display:inline;">
-                    <input type="hidden" name="id" value="' . htmlspecialchars($qrCode['id']) . '">
-                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete" onclick="return confirm(\'Delete this QR code?\')"><i class="fas fa-trash"></i></button>
-                </form>';
-            }
+            $deleteBtn = '<form method="POST" action="/delete_qr.php" style="display:inline;">
+                <input type="hidden" name="id" value="' . htmlspecialchars($qrCode['id']) . '">
+                <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete QR code" onclick="return confirm(\'Delete this QR code permanently? This action cannot be undone.\')"><i class="fas fa-trash"></i> Delete</button>
+            </form>';
             $qrIdEscaped = htmlspecialchars($qrCode['id']);
             $jpegUrl = '/download_qr.php?id=' . urlencode($qrCode['id']) . '&format=jpeg';
             $html .= '<tr>

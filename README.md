@@ -15,7 +15,7 @@ A production-ready QR code management system for LWS shared hosting, using class
 - Per-QR switch to disable or re-enable scan statistics without disabling redirects
 - Authenticated JPEG export from the generated PNG files
 - Option to omit the automatic C.O.G. corner logo
-- Only root can delete QR codes or users
+- Authenticated users can delete QR codes after a confirmation prompt; only root can delete users
 - Responsive, mobile-friendly interface
 - [Custom 404 page](public/404.html)
 

@@ -39,7 +39,9 @@ try {
     $result = $stmt->fetch(PDO::FETCH_ASSOC);
     if ($result && $result['redirect_url']) {
         try {
-            $store->recordView($id);
+            if ($store->isTrackingEnabled($id)) {
+                $store->recordView($id);
+            }
         } catch (Throwable $e) {
             // A statistics write must never prevent the redirect itself.
             error_log('QR statistics write failed: ' . $e->getMessage());

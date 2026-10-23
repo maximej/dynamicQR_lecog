@@ -10,12 +10,13 @@ class QrDataStore
     private string $directory;
     private string $statsFile;
     private string $slugsFile;
+    private string $preferencesFile;
 
     private const RESERVED_SLUGS = [
         'admin', 'api', 'config', 'controllers', 'create', 'delete-qr',
-        'edit-redirect', 'generate', 'index', 'list', 'login', 'logout',
+        'download-qr', 'edit-redirect', 'generate', 'index', 'list', 'login', 'logout',
         'public', 'qrcodes', 'redirect', 'renderer', 'userlist', 'vendor',
-        'webmail', 'well-known',
+        'toggle-tracking', 'webmail', 'well-known',
     ];
 
     public function __construct(?string $directory = null)
@@ -23,6 +24,7 @@ class QrDataStore
         $this->directory = $directory ?: dirname(__DIR__, 2) . DIRECTORY_SEPARATOR . 'private' . DIRECTORY_SEPARATOR . 'qr-data';
         $this->statsFile = $this->directory . DIRECTORY_SEPARATOR . 'stats.json';
         $this->slugsFile = $this->directory . DIRECTORY_SEPARATOR . 'slugs.json';
+        $this->preferencesFile = $this->directory . DIRECTORY_SEPARATOR . 'preferences.json';
     }
 
     public static function normalizeSlug(string $slug): string
@@ -85,6 +87,34 @@ class QrDataStore
         return $updated;
     }
 
+    public function setTrackingEnabled(string $qrId, bool $enabled): void
+    {
+        $this->updateJson($this->preferencesFile, function (array $preferences) use ($qrId, $enabled): array {
+            if ($enabled) {
+                unset($preferences[$qrId]);
+            } else {
+                $preferences[$qrId] = ['tracking_disabled' => true];
+            }
+            return $preferences;
+        });
+    }
+
+    public function isTrackingEnabled(string $qrId): bool
+    {
+        $preferences = $this->readJson($this->preferencesFile);
+        return !isset($preferences[$qrId]['tracking_disabled']) || $preferences[$qrId]['tracking_disabled'] !== true;
+    }
+
+    public function getTrackingStates(array $qrIds): array
+    {
+        $preferences = $this->readJson($this->preferencesFile);
+        $result = [];
+        foreach ($qrIds as $qrId) {
+            $result[$qrId] = !isset($preferences[$qrId]['tracking_disabled']) || $preferences[$qrId]['tracking_disabled'] !== true;
+        }
+        return $result;
+    }
+
     public function getStatsForIds(array $qrIds): array
     {
         $allStats = $this->readJson($this->statsFile);
@@ -107,6 +137,10 @@ class QrDataStore
         });
         $this->updateJson($this->slugsFile, function (array $slugs) use ($qrId): array {
             return array_filter($slugs, static fn($mappedId): bool => $mappedId !== $qrId);
+        });
+        $this->updateJson($this->preferencesFile, function (array $preferences) use ($qrId): array {
+            unset($preferences[$qrId]);
+            return $preferences;
         });
     }
 

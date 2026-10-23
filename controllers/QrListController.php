@@ -46,8 +46,10 @@ class QrListController
         $hasMore = ($offset + count($qrCodes)) < $totalRows;
         try {
             $stats = (new QrDataStore())->getStatsForIds(array_column($qrCodes, 'id'));
+            $trackingStates = (new QrDataStore())->getTrackingStates(array_column($qrCodes, 'id'));
         } catch (\Throwable $e) {
             $stats = [];
+            $trackingStates = [];
             error_log('QR statistics read failed: ' . $e->getMessage());
         }
 
@@ -122,6 +124,7 @@ class QrListController
                             <th>Redirect URL</th>
                             <th>Views / Scans</th>
                             <th>Last Viewed (UTC)</th>
+                            <th>Tracking</th>
                             <th>Created At</th>
                         </tr>
                     </thead>
@@ -173,8 +176,10 @@ class QrListController
                     <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete" onclick="return confirm(\'Delete this QR code?\')"><i class="fas fa-trash"></i></button>
                 </form>';
             }
+            $qrIdEscaped = htmlspecialchars($qrCode['id']);
+            $jpegUrl = '/download_qr.php?id=' . urlencode($qrCode['id']) . '&format=jpeg';
             $html .= '<tr>
-                <td><img src="' . htmlspecialchars($qrCode['qr_code_path'] ?? '') . '" alt="QR Code" class="qr-code-img"></td>';
+                <td><img src="' . htmlspecialchars($qrCode['qr_code_path'] ?? '') . '" alt="QR Code" class="qr-code-img"><div class="mt-2"><a class="btn btn-sm btn-outline-secondary" href="' . htmlspecialchars($jpegUrl) . '"><i class="fas fa-download"></i> JPEG</a></div></td>';
             // Make original_url and redirect_url clickable and open in new tab
             $originalUrl = htmlspecialchars($qrCode['original_url'] ?? '');
             $redirectUrl = htmlspecialchars($qrCode['redirect_url'] ?? '');
@@ -186,6 +191,15 @@ class QrListController
             $lastViewed = $qrStats['last_viewed_at'] ? str_replace(['T', 'Z'], [' ', ' UTC'], $qrStats['last_viewed_at']) : 'Never';
             $html .= '<td>' . (int)$qrStats['views'] . '</td>';
             $html .= '<td>' . htmlspecialchars($lastViewed) . '</td>';
+            if (!empty($qrCode['redirect_url'])) {
+                $trackingEnabled = $trackingStates[$qrCode['id']] ?? true;
+                $trackingLabel = $trackingEnabled ? 'Enabled' : 'Disabled';
+                $trackingClass = $trackingEnabled ? 'btn-outline-success' : 'btn-outline-secondary';
+                $trackingAction = $trackingEnabled ? 'Disable' : 'Enable';
+                $html .= '<td><span class="d-block mb-2">' . $trackingLabel . '</span><form method="POST" action="/toggle_tracking.php" style="display:inline;"><input type="hidden" name="id" value="' . $qrIdEscaped . '"><input type="hidden" name="enabled" value="' . ($trackingEnabled ? '0' : '1') . '"><input type="hidden" name="search" value="' . htmlspecialchars($search) . '"><input type="hidden" name="page" value="' . (int)$page . '"><button type="submit" class="btn btn-sm ' . $trackingClass . '">' . $trackingAction . '</button></form></td>';
+            } else {
+                $html .= '<td>Not applicable</td>';
+            }
             $html .= '<td>' . htmlspecialchars($qrCode['created_at'] ?? '') . '<div class="mt-2">' . $deleteBtn . '</div></td>';
             $html .= '</tr>';
         }

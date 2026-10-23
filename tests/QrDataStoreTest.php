@@ -44,6 +44,13 @@ try {
     assertSameValue(0, $stats['never-seen']['views'], 'Unknown QR should have zero views.');
     assertSameValue(null, $stats['never-seen']['last_viewed_at'], 'Unknown QR should have no last-viewed date.');
 
+    assertSameValue(true, $store->isTrackingEnabled('qr-1'), 'Tracking should be enabled by default.');
+    $store->setTrackingEnabled('qr-1', false);
+    assertSameValue(false, $store->isTrackingEnabled('qr-1'), 'Tracking was not disabled.');
+    assertSameValue(false, $store->getTrackingStates(['qr-1'])['qr-1'], 'Bulk tracking state is incorrect.');
+    $store->setTrackingEnabled('qr-1', true);
+    assertSameValue(true, $store->isTrackingEnabled('qr-1'), 'Tracking was not re-enabled.');
+
     $store->deleteQrData('qr-1');
     assertSameValue(null, $store->resolveSlug('pantin'), 'Slug cleanup failed.');
     assertSameValue(0, $store->getStatsForIds(['qr-1'])['qr-1']['views'], 'Statistics cleanup failed.');

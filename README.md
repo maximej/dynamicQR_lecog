@@ -12,6 +12,9 @@ A production-ready QR code management system for LWS shared hosting, using class
 - **Dynamic QR code redirection via `redirect.php`**
 - Optional custom dynamic URLs such as `https://qr.lecog.fr/pantin`
 - Anonymous total scan count and last-viewed UTC timestamp
+- Per-QR switch to disable or re-enable scan statistics without disabling redirects
+- Authenticated JPEG export from the generated PNG files
+- Option to omit the automatic C.O.G. corner logo
 - Only root can delete QR codes or users
 - Responsive, mobile-friendly interface
 - [Custom 404 page](public/404.html)

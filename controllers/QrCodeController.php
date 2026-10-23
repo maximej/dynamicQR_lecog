@@ -43,6 +43,11 @@ class QrCodeController
                         </div>
                         <div class="form-text">3–64 lowercase letters, numbers, or hyphens. Available for dynamic QR codes.</div>
                     </div>
+                    <div class="form-check mb-3" id="trackingGroup" style="display:none;">
+                        <input type="checkbox" id="track_scans" name="track_scans" class="form-check-input" checked>
+                        <label for="track_scans" class="form-check-label">Count scans and save the last viewed date</label>
+                        <div class="form-text">Turn this off to redirect without recording statistics.</div>
+                    </div>
                 </div>
                 </div>
             </div>
@@ -85,6 +90,10 @@ class QrCodeController
                 </div>
                 <div id="logoCard" class="collapse">
                 <div class="card-body">
+                    <div class="form-check mb-3">
+                        <input type="checkbox" id="add_cog_logo" name="add_cog_logo" class="form-check-input" checked>
+                        <label for="add_cog_logo" class="form-check-label">Add the C.O.G. logo in the bottom-right corner</label>
+                    </div>
                     <div class="row mb-3">
                         <div class="col-md-6">
                             <label for="logo" class="form-label">Upload Logo (PNG/JPG, max 200KB):</label>
@@ -122,8 +131,10 @@ class QrCodeController
         const dynamicCheckbox = document.getElementById("dynamic");
         const customSlugGroup = document.getElementById("customSlugGroup");
         const customSlugInput = document.getElementById("custom_slug");
+        const trackingGroup = document.getElementById("trackingGroup");
         function updateCustomSlugVisibility() {
             customSlugGroup.style.display = dynamicCheckbox.checked ? "block" : "none";
+            trackingGroup.style.display = dynamicCheckbox.checked ? "block" : "none";
             if (!dynamicCheckbox.checked) customSlugInput.value = "";
         }
         dynamicCheckbox.addEventListener("change", updateCustomSlugVisibility);
@@ -157,8 +168,11 @@ class QrCodeController
             $foregroundColorHex = $data['foreground_color'] ?? '#000000';
             $backgroundColorHex = $data['background_color'] ?? '#FFFFFF';
             $isDynamic = isset($data['dynamic']) && $data['dynamic'] === 'on';
+            $addCogLogo = isset($data['add_cog_logo']) && $data['add_cog_logo'] === 'on';
             $customSlug = QrDataStore::normalizeSlug((string)($data['custom_slug'] ?? ''));
+            $trackingEnabled = isset($data['track_scans']) && $data['track_scans'] === 'on';
             $slugRegistered = false;
+            $trackingPreferenceSaved = false;
 
             if (empty($url)) {
                 throw new \Exception('No URL or text provided for QR code generation.');
@@ -190,6 +204,10 @@ class QrCodeController
             if ($customSlug !== '') {
                 $dataStore->registerSlug($customSlug, $uniqueId);
                 $slugRegistered = true;
+            }
+            if ($isDynamic && !$trackingEnabled) {
+                $dataStore->setTrackingEnabled($uniqueId, false);
+                $trackingPreferenceSaved = true;
             }
 
             $qrCode = new QrCode($qrCodeContent);
@@ -232,7 +250,7 @@ class QrCodeController
             }
             // Overlay COG_Logo_1000.jpg at bottom right (GD only, no Imagick)
             $cogLogoPath = __DIR__ . '/../public/COG_Logo_1000.jpg';
-            if (file_exists($cogLogoPath)) {
+            if ($addCogLogo && file_exists($cogLogoPath)) {
                 $qrImg = imagecreatefrompng($qrCodePath);
                 $logoImg = imagecreatefromjpeg($cogLogoPath);
                 $qrSize = imagesx($qrImg); // QR code is square
@@ -265,6 +283,7 @@ class QrCodeController
             ]);
 
             $_SESSION['qr_code_path'] = $qrCodePath;
+            $_SESSION['qr_code_id'] = $uniqueId;
             $_SESSION['success'] = 'QR Code generated successfully!';
         } catch (\Exception $e) {
             if (!empty($slugRegistered) && !empty($customSlug) && !empty($uniqueId)) {
@@ -272,6 +291,13 @@ class QrCodeController
                     (new QrDataStore())->releaseSlug($customSlug, $uniqueId);
                 } catch (\Throwable $cleanupError) {
                     error_log('Custom QR URL cleanup failed: ' . $cleanupError->getMessage());
+                }
+            }
+            if (!empty($trackingPreferenceSaved) && !empty($uniqueId)) {
+                try {
+                    (new QrDataStore())->setTrackingEnabled($uniqueId, true);
+                } catch (\Throwable $cleanupError) {
+                    error_log('QR tracking preference cleanup failed: ' . $cleanupError->getMessage());
                 }
             }
             $_SESSION['error'] = 'Failed to generate QR Code: ' . $e->getMessage();

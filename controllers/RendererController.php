@@ -8,7 +8,8 @@ class RendererController
         $successMessage = $_SESSION['success'] ?? '';
         $errorMessage = $_SESSION['error'] ?? '';
         $qrCodePath = $_SESSION['qr_code_path'] ?? '';
-        unset($_SESSION['success'], $_SESSION['error'], $_SESSION['qr_code_path']);
+        $qrCodeId = $_SESSION['qr_code_id'] ?? '';
+        unset($_SESSION['success'], $_SESSION['error'], $_SESSION['qr_code_path'], $_SESSION['qr_code_id']);
 
         ob_start();
         $menu = new \App\Controllers\MainMenuController();
@@ -29,7 +30,11 @@ class RendererController
         $html .= '<div class="text-center">
                 <p class="text-success fs-4">' . htmlspecialchars($successMessage) . '</p>
                 <p class="text-danger fs-5">' . htmlspecialchars($errorMessage) . '</p>
-                <img src="' . htmlspecialchars($qrCodePath) . '" alt="QR Code" class="img-fluid border rounded shadow-sm">
+                <img src="' . htmlspecialchars($qrCodePath) . '" alt="QR Code" class="img-fluid border rounded shadow-sm">';
+        if ($qrCodeId !== '') {
+            $html .= '<div class="mt-3"><a class="btn btn-primary" href="/download_qr.php?id=' . urlencode($qrCodeId) . '&format=jpeg">Download as JPEG</a></div>';
+        }
+        $html .= '
             </div>
             <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
         </body>
